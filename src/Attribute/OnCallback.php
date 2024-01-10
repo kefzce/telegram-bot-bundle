@@ -7,7 +7,7 @@ namespace Luzrain\TelegramBotBundle\Attribute;
 use Luzrain\TelegramBotApi\Event\CallbackQuery;
 use Luzrain\TelegramBotApi\Event\NamedCallbackQuery;
 
-#[\Attribute(\Attribute::TARGET_METHOD)]
+#[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 final readonly class OnCallback
 {
     public string $event;
