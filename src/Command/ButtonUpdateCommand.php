@@ -2,32 +2,34 @@
 
 declare(strict_types=1);
 
-namespace Luzrain\TelegramBotBundle\TelegramBot\Command;
+namespace Luzrain\TelegramBotBundle\Command;
 
 use Luzrain\TelegramBotApi\BotApi;
 use Luzrain\TelegramBotApi\Exception\TelegramApiException;
 use Luzrain\TelegramBotApi\Method;
 use Luzrain\TelegramBotApi\Type;
-use Luzrain\TelegramBotBundle\TelegramBot\CommandDescriptionProcessor;
-use Luzrain\TelegramBotBundle\TelegramBot\CommandMetadataProvider;
+use Luzrain\TelegramBotBundle\CommandMetadataProvider;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-final class ButtonSetCommandsCommand extends Command
+final class ButtonUpdateCommand extends Command
 {
+    private \Closure $descriptionProcessor;
+
     public function __construct(
         private BotApi $botApi,
         private CommandMetadataProvider $commandMetadataProvider,
-        private CommandDescriptionProcessor $descriptionProcessor,
+        callable|null $descriptionProcessor,
     ) {
+        $this->descriptionProcessor = $descriptionProcessor ? $descriptionProcessor(...) : static fn(string $str) => $str;
         parent::__construct();
     }
 
     public static function getDefaultName(): string
     {
-        return 'telegram:button:setcommands';
+        return 'telegram:button:update';
     }
 
     public static function getDefaultDescription(): string
@@ -46,8 +48,8 @@ final class ButtonSetCommandsCommand extends Command
                 continue;
             }
 
-            $description = $this->descriptionProcessor->process($attr->description);
-            $output->writeln(sprintf("%s\t\t%s", $attr->command, $description));
+            $description = ($this->descriptionProcessor)($attr->description);
+            $output->writeln(\sprintf("%s\t\t%s", $attr->command, $description));
             $commands[] = new Type\BotCommand(command: $attr->command, description: $description);
         }
 

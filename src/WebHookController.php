@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Luzrain\TelegramBotBundle\TelegramBot\Controller;
+namespace Luzrain\TelegramBotBundle;
 
 use Luzrain\TelegramBotApi\Exception\TelegramTypeException;
 use Luzrain\TelegramBotApi\Type\Update;
-use Luzrain\TelegramBotBundle\TelegramBot\UpdateHandler;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,7 +13,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
-final class WebHookController
+final readonly class WebHookController
 {
     public function __construct(
         private UpdateHandler $updateHandler,
@@ -39,7 +38,7 @@ final class WebHookController
         }
 
         $response = new JsonResponse($this->updateHandler->handle($update));
-        $response->headers->set('Content-Length', (string) strlen((string) $response->getContent()));
+        $response->headers->set('Content-Length', (string) \strlen((string) $response->getContent()));
 
         return $response;
     }

@@ -12,13 +12,16 @@ final readonly class OnEvent
     public string $event;
     public int $priority;
 
+    /**
+     * @param class-string<Event> $event
+     */
     public function __construct(string $event, int $priority = 0)
     {
         $this->event = $event;
         $this->priority = $priority;
 
-        if (!is_subclass_of($event, Event::class)) {
-            throw new \InvalidArgumentException(sprintf('Event should implement %s', Event::class));
+        if (!\is_subclass_of($event, Event::class)) {
+            throw new \InvalidArgumentException(\sprintf('Event should implement %s', Event::class));
         }
     }
 }

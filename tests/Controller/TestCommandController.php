@@ -6,7 +6,7 @@ namespace Luzrain\TelegramBotBundle\Test\Controller;
 
 use Luzrain\TelegramBotApi\Method;
 use Luzrain\TelegramBotBundle\Attribute\OnCommand;
-use Luzrain\TelegramBotBundle\TelegramBot\TelegramCommand;
+use Luzrain\TelegramBotBundle\TelegramCommand;
 use Luzrain\TelegramBotBundle\Test\Helper\ControllerTestHelper;
 
 final class TestCommandController extends TelegramCommand
@@ -26,6 +26,7 @@ final class TestCommandController extends TelegramCommand
     }
 
     #[OnCommand(command: '/test3', description: 'test3 command description', publish: false)]
+    #[OnCommand(command: '/test4', description: 'test4 command description', publish: false)]
     public function test3(): Method
     {
         ControllerTestHelper::$isTest3CommandCommand = true;

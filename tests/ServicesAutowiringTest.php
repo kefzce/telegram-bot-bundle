@@ -6,17 +6,16 @@ namespace Luzrain\TelegramBotBundle\Test;
 
 use Luzrain\TelegramBotApi\BotApi;
 use Luzrain\TelegramBotApi\ClientApi;
-use Luzrain\TelegramBotBundle\TelegramBot\Command\ButtonDeleteCommand;
-use Luzrain\TelegramBotBundle\TelegramBot\Command\ButtonSetCommandsCommand;
-use Luzrain\TelegramBotBundle\TelegramBot\Command\DeleteWebhookCommand;
-use Luzrain\TelegramBotBundle\TelegramBot\Command\PolllingStartCommand;
-use Luzrain\TelegramBotBundle\TelegramBot\Command\SetWebhookCommand;
-use Luzrain\TelegramBotBundle\TelegramBot\Command\WebhookInfoCommand;
-use Luzrain\TelegramBotBundle\TelegramBot\CommandDescriptionProcessor;
-use Luzrain\TelegramBotBundle\TelegramBot\CommandMetadataProvider;
-use Luzrain\TelegramBotBundle\TelegramBot\Controller\WebHookController;
-use Luzrain\TelegramBotBundle\TelegramBot\LongPollingService;
-use Luzrain\TelegramBotBundle\TelegramBot\UpdateHandler;
+use Luzrain\TelegramBotBundle\Command\ButtonDeleteCommand;
+use Luzrain\TelegramBotBundle\Command\ButtonUpdateCommand;
+use Luzrain\TelegramBotBundle\Command\PolllingStartCommand;
+use Luzrain\TelegramBotBundle\Command\WebhookDeleteCommand;
+use Luzrain\TelegramBotBundle\Command\WebhookInfoCommand;
+use Luzrain\TelegramBotBundle\Command\WebhookUpdateCommand;
+use Luzrain\TelegramBotBundle\CommandMetadataProvider;
+use Luzrain\TelegramBotBundle\LongPollingService;
+use Luzrain\TelegramBotBundle\UpdateHandler;
+use Luzrain\TelegramBotBundle\WebHookController;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -41,14 +40,13 @@ final class ServicesAutowiringTest extends KernelTestCase
         $this->assertInstanceOf(ClientApi::class, self::$container->get('telegram_bot.client_api'));
         $this->assertInstanceOf(WebHookController::class, self::$container->get('telegram_bot.webhook_controller'));
         $this->assertInstanceOf(LongPollingService::class, self::$container->get('telegram_bot.long_polling_service'));
-        $this->assertInstanceOf(SetWebhookCommand::class, self::$container->get('telegram_bot.set_webhook_command'));
-        $this->assertInstanceOf(WebhookInfoCommand::class, self::$container->get('telegram_bot.get_webhook_command'));
-        $this->assertInstanceOf(DeleteWebhookCommand::class, self::$container->get('telegram_bot.delete_webhook_command'));
-        $this->assertInstanceOf(PolllingStartCommand::class, self::$container->get('telegram_bot.polling_command'));
-        $this->assertInstanceOf(ButtonSetCommandsCommand::class, self::$container->get('telegram_bot.menu_button_set_commands'));
-        $this->assertInstanceOf(ButtonDeleteCommand::class, self::$container->get('telegram_bot.menu_button_delete_command'));
+        $this->assertInstanceOf(WebhookUpdateCommand::class, self::$container->get('telegram_bot.webhook_update_command'));
+        $this->assertInstanceOf(WebhookInfoCommand::class, self::$container->get('telegram_bot.webhook_info_command'));
+        $this->assertInstanceOf(WebhookDeleteCommand::class, self::$container->get('telegram_bot.webhook_delete_command'));
+        $this->assertInstanceOf(PolllingStartCommand::class, self::$container->get('telegram_bot.polling_start_command'));
+        $this->assertInstanceOf(ButtonUpdateCommand::class, self::$container->get('telegram_bot.button_update_commands'));
+        $this->assertInstanceOf(ButtonDeleteCommand::class, self::$container->get('telegram_bot.button_delete_command'));
         $this->assertInstanceOf(UpdateHandler::class, self::$container->get('telegram_bot.update_handler'));
         $this->assertInstanceOf(CommandMetadataProvider::class, self::$container->get('telegram_bot.command_metadata_provider'));
-        $this->assertInstanceOf(CommandDescriptionProcessor::class, self::$container->get('telegram_bot.description_processor'));
     }
 }

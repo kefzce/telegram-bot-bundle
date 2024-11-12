@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Luzrain\TelegramBotBundle\TelegramBot;
+namespace Luzrain\TelegramBotBundle;
 
 use Luzrain\TelegramBotApi\ClientApi;
 use Luzrain\TelegramBotApi\Event;
@@ -11,15 +11,15 @@ use Luzrain\TelegramBotApi\Method;
 use Luzrain\TelegramBotApi\Type\Update;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
-final class UpdateHandler
+final readonly class UpdateHandler
 {
     public function __construct(
         private ClientApi $client,
         private ServiceLocator $serviceLocator,
         array $controllersMap,
     ) {
-        foreach ($controllersMap as ['event' => $event, 'value' => $value, 'controller' => $controller]) {
-            $this->client->on($this->createClosure($event, $value, $controller));
+        foreach ($controllersMap as ['event' => $eventClass, 'value' => $value, 'controller' => $controller]) {
+            $this->client->on($this->createEvent($eventClass, $value, $controller));
         }
     }
 
@@ -34,13 +34,13 @@ final class UpdateHandler
     /**
      * @param class-string<Event> $event
      */
-    private function createClosure(string $event, string $value, string $controller): Event
+    private function createEvent(string $event, string $value, string $controller): Event
     {
         return match ($event) {
             Event\Command::class => new $event($value, function (object $update, string ...$params) use ($controller) {
                 return $this->runController($controller, $update, $params);
             }),
-            Event\NamedCallbackQuery::class => new $event($value, function (object $update) use ($controller) {
+            Event\CallbackDataQuery::class => new $event($value, function (object $update) use ($controller) {
                 return $this->runController($controller, $update);
             }),
             default => new $event(function (object $update) use ($controller) {
@@ -52,25 +52,26 @@ final class UpdateHandler
     private function runController(string $controller, object $update, array $params = []): mixed
     {
         /** @psalm-suppress PossiblyUndefinedArrayOffset */
-        [$service, $method] = explode('::', $controller, 2);
+        [$service, $method] = \explode('::', $controller, 2);
         $controllerService = $this->serviceLocator->get($service);
 
-        if ($update instanceof Update) {
-            $user = null;
-            foreach ($update as $updateItem) {
-                if (isset($updateItem->from)) {
-                    $user = $updateItem->from;
-                    break;
-                }
-            }
-        } else {
-            $user = $update->from ?? null;
-        }
-
-        if ($controllerService instanceof TelegramCommand && $user !== null) {
-            $controllerService->setUser($user);
+        if ($controllerService instanceof TelegramCommand) {
+            $controllerService->chatId = $this->findChatId($update);
         }
 
         return $controllerService->$method($update, ...$params);
+    }
+
+    private function findChatId(object $update): int|null
+    {
+        if ($update instanceof Update) {
+            foreach ($update as $updateItem) {
+                if (null !== $chatId = $updateItem->chat->id ?? $updateItem->message->chat->id ?? null) {
+                    return $chatId;
+                }
+            }
+        }
+
+        return $update->chat->id ?? $update->message->chat->id ?? null;
     }
 }
