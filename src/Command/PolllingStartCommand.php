@@ -6,6 +6,8 @@ namespace Luzrain\TelegramBotBundle\Command;
 
 use Luzrain\TelegramBotApi\BotApi;
 use Luzrain\TelegramBotApi\Exception\TelegramApiException;
+use Luzrain\TelegramBotBundle\Event\AfterSend;
+use Luzrain\TelegramBotBundle\Event\BeforeSend;
 use Luzrain\TelegramBotBundle\LongPollingService;
 use Luzrain\TelegramBotBundle\UpdateHandler;
 use Symfony\Component\Console\Command\Command;
@@ -13,6 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 final class PolllingStartCommand extends Command
 {
@@ -20,6 +23,7 @@ final class PolllingStartCommand extends Command
         private LongPollingService $longPollingService,
         private UpdateHandler $updateHandler,
         private BotApi $botApi,
+        private EventDispatcherInterface $dispatcher,
     ) {
         parent::__construct();
     }
@@ -71,12 +75,23 @@ final class PolllingStartCommand extends Command
                     $update->updateId,
                 ));
 
+                $this->dispatcher->dispatch($update);
+
+                $output->writeln(\sprintf(
+                    '%s: [%s] Dispatched an event (%s)',
+                    $formattedDate,
+                    $update->updateId,
+                    $update::class,
+                ));
+
                 if (null === $callbackResponse = $this->updateHandler->handle($update)) {
                     continue;
                 }
 
                 try {
-                    $this->botApi->call($callbackResponse);
+                    $this->dispatcher->dispatch(new BeforeSend($callbackResponse));
+                    $response = $this->botApi->call($callbackResponse);
+                    $this->dispatcher->dispatch(new AfterSend($response));
                 } catch (TelegramApiException $e) {
                     $output->writeln(\sprintf(
                         '%s: [%s] <error>TelegramApiException (%s) %s</error>',

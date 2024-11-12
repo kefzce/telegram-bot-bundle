@@ -19,6 +19,7 @@ use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 return static function (array $config, ContainerBuilder $container) {
     $container
@@ -84,6 +85,7 @@ return static function (array $config, ContainerBuilder $container) {
             new Reference('telegram_bot.long_polling_service'),
             new Reference('telegram_bot.update_handler'),
             new Reference(BotApi::class),
+            new Reference(EventDispatcherInterface::class)
         ])
     ;
 
