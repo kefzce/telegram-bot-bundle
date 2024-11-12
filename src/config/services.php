@@ -42,6 +42,7 @@ return static function (array $config, ContainerBuilder $container) {
         ->setArguments([
             new Reference('telegram_bot.update_handler'),
             $config['webhook']['secret_token'],
+            new Reference(EventDispatcherInterface::class),
         ])
     ;
 

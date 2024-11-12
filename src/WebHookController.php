@@ -6,6 +6,8 @@ namespace Luzrain\TelegramBotBundle;
 
 use Luzrain\TelegramBotApi\Exception\TelegramTypeException;
 use Luzrain\TelegramBotApi\Type\Update;
+use Luzrain\TelegramBotBundle\Event\BeforeSend;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +20,7 @@ final readonly class WebHookController
     public function __construct(
         private UpdateHandler $updateHandler,
         private string|null $secretToken,
+        private EventDispatcherInterface $dispatcher,
     ) {
     }
 
@@ -33,11 +36,14 @@ final readonly class WebHookController
 
         try {
             $update = Update::fromJson($request->getContent());
+            $this->dispatcher->dispatch($update);
         } catch (TelegramTypeException $e) {
             throw new BadRequestHttpException($e->getMessage(), $e);
         }
 
-        $response = new JsonResponse($this->updateHandler->handle($update));
+        $object = $this->updateHandler->handle($update);
+        $this->dispatcher->dispatch(new BeforeSend($object));
+        $response = new JsonResponse($object);
         $response->headers->set('Content-Length', (string) \strlen((string) $response->getContent()));
 
         return $response;
